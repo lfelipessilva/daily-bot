@@ -1,69 +1,55 @@
 # daily-bot
 
-A small CLI that scans git repositories in a folder, collects your commits for a day, and asks Gemini for a Portuguese daily standup summary.
+Scans the git repos in `PROJECTS_DIR`, collects your commits, and prints a Portuguese daily standup summary.
 
-## Requirements
+Once the variables below are set, this is the whole workflow:
 
-- [Node.js](https://nodejs.org/) 18 or newer
-- Git, with `user.name` or `user.email` set in the repos you want scanned
-- A [Gemini API key](https://aistudio.google.com/apikey)
+```bash
+daily
+daily -d today
+```
 
-## Install
+`daily` uses yesterday. On Monday that window is Friday through Sunday. `daily -d today` uses today.
+
+## Setup
+
+Node.js 18 or newer, Git, and a [Gemini API key](https://aistudio.google.com/apikey).
 
 ```bash
 git clone <this-repo-url>
 cd daily-bot
 npm install
-```
-
-To run it as `daily` from anywhere:
-
-```bash
 npm link
 ```
 
-## Configure
-
-Create `~/.daily-bot.env` (preferred) or a `.env` file in this directory:
+Copy `.env.example` to `~/.daily-bot.env` and fill it in:
 
 ```bash
 GEMINI_API_KEY=your_key_here
-```
-
-Optional:
-
-```bash
-GEMINI_MODEL=gemini-2.5-flash
+GEMINI_MODEL=gemini-3.5-flash-lite
 PROJECTS_DIR=/path/to/your/repos
 ```
 
-`GEMINI_MODEL` defaults to `gemini-2.5-flash`. `PROJECTS_DIR` is used when you do not pass a directory on the command line.
+`GEMINI_API_KEY` and `PROJECTS_DIR` are required for `daily` with no extra arguments. `GEMINI_MODEL` falls back to `gemini-2.5-flash` when it is omitted.
 
-## Run
+`PROJECTS_DIR` is a folder whose **direct children** are git repositories. Commits are limited to your local `git config user.name`, or `user.email` when the name is missing.
 
-Scan every git repository that is a **direct child** of a folder:
+If `~/.daily-bot.env` is missing, the CLI loads a `.env` file from the current directory instead.
 
-```bash
-node index.js /path/to/your/repos
-```
-
-Or, after `npm link`:
+## Other flags
 
 ```bash
-daily /path/to/your/repos
+daily -d yesterday
+daily -d 2026-10-24
+daily -d 10/24/2026
+daily -v
+daily -h
 ```
 
-With no path, the tool uses `PROJECTS_DIR`, then the current directory.
+| Flag | Meaning |
+| --- | --- |
+| `-d`, `--date` | `today`, `yesterday` (default), `YYYY-MM-DD`, or `MM/DD/YYYY` |
+| `-v`, `--verbose` | Scan and API logs |
+| `-h`, `--help` | Usage |
 
-By default it looks at yesterday. On Monday, "yesterday" covers Friday through Sunday.
-
-```bash
-node index.js /path/to/your/repos --date today
-node index.js /path/to/your/repos --date yesterday
-node index.js /path/to/your/repos --date 2026-10-24
-node index.js /path/to/your/repos --date 10/24/2026
-```
-
-`-d` is the short form of `--date`. Add `--verbose` or `-v` to print scan and API logs. The summary is always printed.
-
-Only commits authored by your local `git config user.name` (or `user.email` if the name is missing) are included.
+A directory argument overrides `PROJECTS_DIR` for that run: `daily /some/other/folder`.
