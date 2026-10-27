@@ -274,18 +274,20 @@ ${rawLogs}
 
 Escreva um resumo direto e técnico em português, pronto para colar no terminal. Sem preâmbulo.
 
-Formato obrigatório, em texto puro (sem markdown: sem asteriscos, sem negrito, sem crases, sem cabeçalhos com #):
+A data já aparece no cabeçalho do terminal. Não repita a data, o dia da semana nem "${targetDate.display}" em lugar nenhum do texto.
 
-Resumo para a Daily (${targetDate.display}):
+Formato obrigatório, em texto puro (sem markdown: sem asteriscos, sem negrito, sem crases, sem cabeçalhos com #). Agrupe pelo nome do repositório, na ordem em que os commits aparecem. Um repositório por bloco. Não misture mudanças de repositórios diferentes na mesma frase.
 
 O que foi feito:
-${targetDate.label.charAt(0).toUpperCase() + targetDate.label.slice(1)} (${targetDate.display}), uma frase curta do foco do dia.
-- Tema (área): o que mudou, agrupado por contexto. Sem hash de commit.
+Uma frase curta do foco do período, sem data.
+
+Nome do repositório:
+- o que mudou nesse repositório, em frases curtas. Sem hash de commit.
 
 Próximos passos:
-- próximo passo lógico, um por linha, com hífen.
+- próximo passo lógico, um por linha, com hífen. Quando fizer sentido, cite o repositório.
 
-Use hífen para listas. Não use *, **, _, nem blocos de código.
+Use hífen para listas. Não use *, **, _, nem blocos de código. Não comece com "Resumo para a Daily".
 `.trim();
 
   log.debug('PROMPT SENT TO GEMINI', prompt);
