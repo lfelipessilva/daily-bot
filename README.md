@@ -32,7 +32,7 @@ PROJECTS_DIR=/path/to/your/repos
 
 `GEMINI_API_KEY` and `PROJECTS_DIR` are required for `daily` with no extra arguments. `GEMINI_MODEL` falls back to `gemini-2.5-flash` when it is omitted.
 
-`PROJECTS_DIR` is a folder whose **direct children** are git repositories. Commits are limited to your local `git config user.name`, or `user.email` when the name is missing.
+`PROJECTS_DIR` is a folder of projects. The scan walks nested folders until it finds a `.git` directory, then treats that folder as the repository and does not go deeper. `node_modules`, `vendor`, `dist`, `.next`, and `coverage` are skipped. Commits are limited to your local `git config user.name`, or `user.email` when the name is missing. Nested repos are labeled by their path under `PROJECTS_DIR` (for example `clients/acme/api`).
 
 If `~/.daily-bot.env` is missing, the CLI loads a `.env` file from the current directory instead.
 

@@ -176,7 +176,8 @@ log.info(`Target date: ${targetDate.exact} (${targetDate.label}), since="${targe
 // Git Operations
 // --------------------------------------------------
 function getGitCommits(repoPath) {
-  const repoName = path.basename(repoPath);
+  const root = path.resolve(ROOT_DIR);
+  const repoName = path.relative(root, repoPath) || path.basename(repoPath);
   try {
     let authorName = '';
     let authorEmail = '';
@@ -216,31 +217,49 @@ function getGitCommits(repoPath) {
   }
 }
 
+const SKIP_DIRS = new Set(['node_modules', 'vendor', 'dist', '.next', 'coverage']);
+
+function findGitRepos(dir, repos = []) {
+  let entries;
+  try {
+    entries = fs.readdirSync(dir, { withFileTypes: true });
+  } catch (err) {
+    log.warn(`Cannot read directory: ${dir} (${err.message})`);
+    return repos;
+  }
+
+  if (entries.some((entry) => entry.name === '.git')) {
+    repos.push(dir);
+    return repos;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    if (entry.name === '.git' || SKIP_DIRS.has(entry.name)) continue;
+    findGitRepos(path.join(dir, entry.name), repos);
+  }
+
+  return repos;
+}
+
 async function collectActivity() {
   if (!fs.existsSync(ROOT_DIR)) {
     log.error(`Directory does not exist: ${ROOT_DIR}`);
     process.exit(1);
   }
 
-  const entries = fs.readdirSync(ROOT_DIR, { withFileTypes: true });
-  log.info(`Found ${entries.length} items in root folder.`);
+  const root = path.resolve(ROOT_DIR);
+  const repos = findGitRepos(root);
+  log.info(`Found ${repos.length} git repositor${repos.length === 1 ? 'y' : 'ies'}.`);
 
   const summaryData = [];
 
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-
-    const fullPath = path.join(ROOT_DIR, entry.name);
-    const gitDir = path.join(fullPath, '.git');
-
-    if (fs.existsSync(gitDir)) {
-      log.info(`Scanning git repository: ${entry.name}`);
-      const logs = getGitCommits(fullPath);
-      if (logs) {
-        summaryData.push(`### Repository: ${entry.name}\n${logs}`);
-      }
-    } else {
-      log.warn(`Skipping non-git folder: ${entry.name}`);
+  for (const repoPath of repos) {
+    const repoName = path.relative(root, repoPath) || path.basename(repoPath);
+    log.info(`Scanning git repository: ${repoName}`);
+    const logs = getGitCommits(repoPath);
+    if (logs) {
+      summaryData.push(`### Repository: ${repoName}\n${logs}`);
     }
   }
 
